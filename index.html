@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA Biosciences AI Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 NASA Biosciences AI Dashboard</h1>
+            <p>Sistema Integrado de Análisis de Investigación Espacial</p>
+            <div class="data-sources">
+                <div class="data-source-badge">📋 NASA Taskbook</div>
+                <div class="data-source-badge">🔬 NSLSL</div>
+                <div class="data-source-badge">🧬 OSDR</div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('home')">🏠 Home</button>
+            <button class="nav-tab" onclick="showTab('publications')">📚 Publicaciones PMC</button>
+            <button class="nav-tab" onclick="showTab('taskbook')">📋 Taskbook</button>
+            <button class="nav-tab" onclick="showTab('analysis')">📊 Análisis</button>
+        </div>
+
+        <div class="content">
+            <div id="home" class="tab-content active">
+                <h2>📊 Dashboard Principal</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Publicaciones PMC</div>
+                        <div class="metric-value" id="totalPublications">0</div>
+                        <small>Artículos OpenAccess</small>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Experimentos</div>
+                        <div class="metric-value" id="totalExperiments">5</div>
+                        <small>NASA Taskbook</small>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Keywords Únicas</div>
+                        <div class="metric-value" id="uniqueKeywords">0</div>
+                        <small>Extraídas</small>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Con PMCID</div>
+                        <div class="metric-value" id="withPMCID">0</div>
+                        <small>Identificados</small>
+                    </div>
+                </div>
+                <div class="file-upload-section">
+                    <h3>🔍 Cargar Base de Datos</h3>
+                    <p class="upload-description">
+                        Carga tu archivo CSV con publicaciones PMC para análisis completo
+                    </p>
+                    <div class="file-upload-container">
+                        <div class="file-drop-zone" id="fileDropZone">
+                            <div class="drop-zone-content">
+                                <div class="upload-icon">📁</div>
+                                <h4>Arrastra tu archivo CSV aquí</h4>
+                                <p>o haz clic para seleccionar</p>
+                                <div class="file-requirements">
+                                    <span class="requirement">✓ Formato: CSV</span>
+                                    <span class="requirement">✓ Tamaño máximo: 50MB</span>
+                                    <span class="requirement">✓ Estructura: SB_publication_PMC.csv</span>
+                                </div>
+                            </div>
+                            <input type="file" id="csvFileInput" accept=".csv" onchange="loadPublicationsCSV(event)" class="hidden-file-input">
+                        </div>
+                        <div class="upload-progress" id="uploadProgress" style="display: none;">
+                            <div class="progress-header">
+                                <span class="progress-text">Procesando archivo...</span>
+                                <span class="progress-percentage" id="progressPercentage">0%</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="progressBarFill"></div>
+                            </div>
+                            <div class="progress-details" id="progressDetails">
+                                Preparando análisis...
+                            </div>
+                        </div>
+                        <div class="upload-result" id="uploadResult" style="display: none;">
+                            <div class="result-icon" id="resultIcon">✅</div>
+                            <div class="result-content">
+                                <h4 id="resultTitle">Archivo cargado exitosamente</h4>
+                                <p id="resultDescription">Tu archivo ha sido procesado correctamente</p>
+                                <div class="result-stats" id="resultStats"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="upload-actions">
+                        <button class="btn btn-secondary" onclick="clearUpload()" id="clearUploadBtn" style="display: none;">
+                            🗑️ Limpiar y cargar otro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+                        <div id="publications" class="tab-content">
+                <h2>📚 Publicaciones PMC</h2>
+                
+                <div class="alert alert-success">
+                    <strong>📊 Estado:</strong> <span id="publicationsStatus">Esperando carga de archivo CSV...</span>
+                </div>
+
+                <div class="alert alert-info" id="scrapingStatus" style="display: none;">
+                    <strong>🌐 Web Scraping:</strong> <span id="scrapingStatusText"></span>
+                    <div class="scraping-progress">
+                        <div class="progress-bar" id="scrapingProgress"></div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>📊 Análisis Estadístico</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value" id="totalPubsStats">0</div>
+                            <div class="stat-label">Total Publicaciones</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="uniqueKeywordsStats">0</div>
+                            <div class="stat-label">Keywords Únicas</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="avgTitleLength">0</div>
+                            <div class="stat-label">Promedio Palabras/Título</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="withPMCIDStats">0</div>
+                            <div class="stat-label">Con PMCID</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="generateStatistics()">📈 Generar Estadísticas</button>
+                    <button class="btn btn-secondary" onclick="exportStatistics()">💾 Exportar Análisis</button>
+                </div>
+
+                <div class="filter-panel">
+                    <h3>🔍 Búsqueda Inteligente NASA</h3>
+                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">
+                        🌐 Busca en tiempo real en: OSDR, NSLSL, NASA Taskbook y datos locales
+                    </p>
+                    <input type="text" id="publicationsSearch" class="search-box" 
+                           placeholder="Buscar por título, palabras clave, PMCID... (búsqueda automática)">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="searchPublications()">🔎 Buscar Ahora</button>
+                        <button class="btn btn-secondary" onclick="clearSearch()">🗑️ Limpiar</button>
+                    </div>
+                </div>
+
+                <div id="publicationsList"></div>
+            </div>
+
+            <div id="taskbook" class="tab-content">
+                <h2>📋 NASA Taskbook</h2>
+                
+                <div class="alert alert-info">
+                    <strong>🌐 NASA Task Book:</strong> Base de datos oficial de proyectos de investigación espacial (FY2004-presente)
+                </div>
+
+                <div class="filter-panel">
+                    <h3>🔍 Búsqueda en NASA Taskbook</h3>
+                    <div class="search-grid">
+                        <div class="search-row">
+                            <label>🎯 Palabras Clave:</label>
+                            <input type="text" id="taskbookKeywords" class="search-box" 
+                                   placeholder="ej: microgravity, bone loss, space biology...">
+                        </div>
+                        <div class="search-row">
+                            <label>👨‍🔬 Investigador:</label>
+                            <input type="text" id="taskbookInvestigator" class="search-box" 
+                                   placeholder="Apellido del investigador principal...">
+                        </div>
+                        <div class="search-row">
+                            <label>🏢 Programa:</label>
+                            <select id="taskbookProgram" class="search-select">
+                                <option value="">Todos los programas</option>
+                                <option value="Human Research">Human Research</option>
+                                <option value="Space Biology">Space Biology</option>
+                                <option value="Physical Sciences">Physical Sciences</option>
+                            </select>
+                        </div>
+                        <div class="search-row">
+                            <label>📅 Año Fiscal:</label>
+                            <select id="taskbookYear" class="search-select">
+                                <option value="">Todos los años</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="search-actions">
+                        <button class="btn btn-primary" onclick="searchTaskbookAdvanced()">
+                            🔎 Buscar Proyectos
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearTaskbookSearch()">
+                            🗑️ Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning" id="taskbookStatus" style="display: none;">
+                    <strong>🔄 Buscando:</strong> <span id="taskbookStatusText"></span>
+                    <div class="scraping-progress">
+                        <div class="progress-bar" id="taskbookProgress"></div>
+                    </div>
+                </div>
+
+                <div id="taskbookResults"></div>
+            </div>
+
+            <div id="analysis" class="tab-content">
+                <h2>📊 Análisis de Keywords</h2>
+                <div class="chart-container">
+                    <h3>🏷️ Keywords Extraídas</h3>
+                    <div id="extractedKeywords"></div>
+                    <button class="btn btn-primary" onclick="extractKeywords()">🔍 Extraer Keywords</button>
+                    <button class="btn btn-secondary" onclick="downloadKeywords()">💾 Descargar Keywords</button>
+                </div>
+                <div class="chart-container">
+                    <h3>☁️ Nube de Palabras</h3>
+                    <div id="wordCloudContainer" class="wordcloud-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget de Tidio Chatbot -->
+        <!-- Tidio Chat Widget -->
+    <script src="//code.tidio.co/5c2seajmzelc476xy9avwbxmlswnzuno.js" async></script>
+    
+    <!-- Tidio Configuration Script -->
+    <script>
+        // Wait for Tidio to load, then configure
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if Tidio loaded successfully
+            let tidioCheckAttempts = 0;
+            const maxAttempts = 20; // 10 seconds
+            
+            const checkTidio = setInterval(function() {
+                tidioCheckAttempts++;
+                
+                if (window.tidioChatApi || window.tidioChat) {
+                    clearInterval(checkTidio);
+                    console.log('✅ Tidio Widget cargado exitosamente');
+                    
+                    // Optional: Set visitor data when Tidio is ready
+                    setTimeout(function() {
+                        if (window.tidioChatApi && window.tidioChatApi.setVisitorData) {
+                            window.tidioChatApi.setVisitorData({
+                                distinctId: 'nasa-dashboard-user',
+                                properties: {
+                                    'page_type': 'NASA Dashboard',
+                                    'user_role': 'Researcher'
+                                }
+                            });
+                        }
+                    }, 1000);
+                    
+                } else if (tidioCheckAttempts >= maxAttempts) {
+                    clearInterval(checkTidio);
+                    console.warn('⚠️ Tidio Widget no se pudo cargar después de 10 segundos');
+                }
+            }, 500);
+        });
+    </script>
+    
+    <script src="scraping-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
